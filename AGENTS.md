@@ -115,3 +115,7 @@ Release script auto-increments `versionCode` in `version.properties` before Grad
 - Add heavy frameworks, analytics, or cloud backends for this personal app
 - Commit signing keys or live guest pass URLs
 - Change `applicationId` without explicit user instruction (locked to Play Console app)
+
+## License
+
+MIT License. Copyright (c) 2026 Jeremy Meiss. See [LICENSE](LICENSE).

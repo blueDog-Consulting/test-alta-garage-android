@@ -189,4 +189,6 @@ Android Auto → Customize launcher → **Add shortcut** → **Assistant action*
 
 ## License
 
-Personal / private use. Not affiliated with Avigilon or Motorola Solutions.
+MIT License. See [LICENSE](LICENSE).
+
+Not affiliated with Avigilon or Motorola Solutions.

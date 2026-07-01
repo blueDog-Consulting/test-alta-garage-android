@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Generate Google Play Store listing assets for Garage Unlock."""
+"""Generate Google Play Store listing assets for Garage Unlock.
+
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

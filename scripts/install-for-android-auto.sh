@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
 set -euo pipefail
 
 APK="${1:-app/build/outputs/apk/debug/app-debug.apk}"
