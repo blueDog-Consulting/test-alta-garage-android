@@ -2,6 +2,8 @@
 
 Android Auto app with one button to open **Garage North Coiling Door** via an [Avigilon Alta](https://www.avigilon.com/) guest pass — without opening Alta Open on your phone.
 
+**PRD:** [PRD.md](docs/PRD.md)
+
 **Package:** `dev.bluedog.garagedoor`
 
 ## How it works
