@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.GarageUnlock" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:statusBarColor">#121826</item>
+        <item name="android:navigationBarColor">#121826</item>
+        <item name="android:windowBackground">#121826</item>
+        <item name="colorPrimary">#2E7D32</item>
+    </style>
+</resources>

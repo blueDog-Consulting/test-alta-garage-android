@@ -1,0 +1,40 @@
+# Gradle / Kotlin
+.gradle/
+.kotlin/
+build/
+**/build/
+
+# Android Studio
+.idea/
+*.iml
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Release signing (never commit secrets)
+keystore.properties
+*.jks
+*.keystore
+
+# Versioned release archives (local only)
+releases/
+
+# Stray installable artifacts
+*.apk
+*.aab
+
+# Generated Play Store listing assets
+# play-store/   ## we can have these in the repo
+.venv-playstore/
+
+# Debug / diagnostic captures
+android-auto-*.log
+gearhead.apk
+
+# Tooling
+.playwright-mcp/
+
+# OS
+.DS_Store
+Thumbs.db

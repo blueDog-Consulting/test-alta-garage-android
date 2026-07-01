@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Garage Unlock</string>
+    <string name="unlock_button">Open Garage North Coiling Door</string>
+    <string name="unlocking">Unlocking garage door…</string>
+    <string name="ready">Ready to unlock</string>
+    <string name="settings_hint">When your Alta guest pass rotates, paste the new link here. Android Auto uses the same saved pass.</string>
+    <string name="guest_pass_hint">Guest pass link or short code</string>
+    <string name="save_pass">Save guest pass</string>
+    <string name="pass_saved">Guest pass saved. Short code: %1$s</string>
+    <string name="pass_save_failed">Could not save. Paste the full Alta link or short code.</string>
+    <string name="pass_not_configured">No guest pass saved. Paste or share your Alta link above.</string>
+    <string name="pass_update_on_phone">Guest pass expired. Open Garage Unlock on your phone to update it.</string>
+</resources>
