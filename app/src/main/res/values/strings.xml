@@ -4,11 +4,35 @@
     <string name="unlock_button">Open Garage North Coiling Door</string>
     <string name="unlocking">Unlocking garage door…</string>
     <string name="ready">Ready to unlock</string>
-    <string name="settings_hint">When your Alta guest pass rotates, paste the new link here. Android Auto uses the same saved pass.</string>
+    <string name="settings_hint">When your Alta guest pass rotates, paste the new link here. Android Auto uses the same saved pass. The pass is stored only on this device — export it to keep a backup.</string>
     <string name="guest_pass_hint">Guest pass link or short code</string>
     <string name="save_pass">Save guest pass</string>
     <string name="pass_saved">Guest pass saved. Short code: %1$s</string>
     <string name="pass_save_failed">Could not save. Paste the full Alta link or short code.</string>
     <string name="pass_not_configured">No guest pass saved. Paste or share your Alta link above.</string>
     <string name="pass_update_on_phone">Guest pass expired. Open Garage Unlock on your phone to update it.</string>
+
+    <!-- Expiry status -->
+    <string name="pass_valid_until">Valid until %1$s · %2$d days left</string>
+    <string name="pass_expiring_soon">Expires %1$s · %2$d days left — share a new link soon</string>
+    <string name="pass_expired_saved">Pass expired — paste a new link to keep unlocking</string>
+    <string name="pass_expiry_unknown">Expiry unknown — tap “Set expiry date” to get reminders</string>
+    <string name="pass_already_expired_warning">Heads up: this pass is already expired.</string>
+
+    <!-- Actions -->
+    <string name="set_expiry">Set expiry date</string>
+    <string name="export_pass">Export / copy pass</string>
+    <string name="remove_pass">Remove saved pass</string>
+    <string name="pass_copied">Guest pass link copied</string>
+    <string name="export_chooser_title">Share guest pass</string>
+    <string name="action_remove">Remove</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="confirm_remove_title">Remove saved pass?</string>
+    <string name="confirm_remove_pass">This deletes the pass from this device. Export it first if you might need it on another device.</string>
+
+    <!-- Expiry reminders -->
+    <string name="pass_expiry_notification_title">Garage pass expiring</string>
+    <string name="pass_expiry_notification">Your guest pass expires in %1$d days. Share a new Alta link to keep unlocking.</string>
+    <string name="pass_expiry_channel_name">Pass expiry reminders</string>
+    <string name="pass_expiry_channel_desc">Warns before your Alta guest pass expires</string>
 </resources>

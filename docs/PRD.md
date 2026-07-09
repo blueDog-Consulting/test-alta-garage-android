@@ -60,7 +60,7 @@ Capture everything learned building the prototype so a **more expansive applicat
 | E1 | Support multiple doors and multiple sites | Real buildings have many entries per pass |
 | E2 | Resident OAuth/API login (if available) | Eliminate guest pass rotation pain |
 | E3 | Widget, shortcut, and Assistant integrations | Fallback when car app unavailable |
-| E4 | Pass expiry reminders | Guest passes expire predictably |
+| E4 | Pass expiry reminders + credential durability | Guest passes expire predictably; don't lose a valid pass before its expiry |
 | E5 | Audit log (local) | Know when/where unlock was attempted |
 | E6 | Optional backend for remote pass sync | Family members, multiple devices |
 | E7 | DHU + real-car test matrix | Regression across Android Auto versions |
@@ -198,8 +198,17 @@ Success: **HTTP 204 No Content**
 **FR-6: Storage**
 
 - Persist `short_code` in `SharedPreferences` (app-private)
+- Alongside the code, persist expiry lifecycle metadata: `saved_at`, `expires_at` (epoch ms; absent = unknown), `expiry_source` (`parsed` | `manual` | `unknown`), and `last_notified_threshold` (reminder dedup)
 - `allowBackup=false` — do not cloud-backup credentials
 - No hardcoded live short code in source (prototype final state)
+
+**FR-6a: Credential durability — don't lose the pass before it expires**
+
+The credential with a real lifetime is the guest pass (valid up to ~6 months, §2.1); the re-resolved JWT is only a short-lived unlock token, so it is *not* a source for the pass's true expiry. Three failure modes must be prevented:
+
+1. **Expiry capture & display** — on save, parse validity dates from the raw Alta share text (ranges take the end date, e.g. "Jul 1 – Dec 30, 2026"); fall back to a manual date picker when none is present. The phone shows a live "Valid until … · N days left" status that turns amber ≤ 7 days and red once expired. A failed date parse never clears a previously known expiry for the same short code.
+2. **Device-migration durability** — because `allowBackup=false`, a reinstall / cleared data / new phone silently loses the pass while it is still valid. Mitigation: a user-controlled **Export / copy pass** action that reconstructs the guest-pass link (`…/cloudKeyUnlock?shortCode=<code>`) for the clipboard or share sheet, so the credential is never trapped solely in app-private storage. *(Rejected alternative: flipping `allowBackup=true` with a scoped backup rule — it would place the plaintext short code in cloud backup, reversing the deliberate no-cloud-credential decision. Revisit only alongside EncryptedSharedPreferences, §10.2.5.)*
+3. **Destructive-action guards** — removing the saved pass requires an explicit confirmation dialog (which points the user at Export first); no unlock/error path ever clears the pass, and saving an already-expired pass warns but still saves rather than silently discarding it.
 
 **FR-7: Share intent**
 
@@ -483,9 +492,11 @@ Parser must extract URL only; optionally parse validity dates for expiry UX.
    - On save, call shortUrl API and list all `entryData.uiLabel` values
    - User picks default door; car button uses default
 
-3. **Expiry awareness**
-   - Parse validity from share text
-   - Notification 7 days and 1 day before expiry
+3. **Expiry awareness & credential durability** (see FR-6a)
+   - Capture `expires_at` on save: parse validity from raw share text, manual date-picker fallback
+   - In-app "valid until · N days left" status chip (amber ≤ 7 days, red when expired)
+   - WorkManager daily check → notification at 7 days and 1 day before expiry (dedup via `last_notified_threshold`)
+   - Export / copy pass for device migration; confirmation guard on remove
 
 4. **Fallbacks**
    - Home screen widget (unlock default door)
@@ -663,7 +674,8 @@ If resident already uses HA with Alta integration, car access via HA companion A
 | Risk | Impact | Mitigation |
 |------|--------|------------|
 | Alta changes API | App breaks | Version API client; monitor JWT shape |
-| Guest pass rotation | User locked out | Share UX; expiry reminders; resident auth long-term |
+| Guest pass rotation | User locked out | Share UX; expiry capture + reminders (FR-6a); resident auth long-term |
+| Valid pass lost early (reinstall / new phone / accidental clear) | User locked out before real expiry | Export/copy pass for backup; confirmation guard on remove; no auto-clear on errors (FR-6a) |
 | Play policy on car apps | Rejection | Follow Android for Cars guidelines; IoT template only |
 | Google tightens sideload | Already blocked | Play-only distribution |
 | Short code in leaked APK | Unauthorized access | No hardcoded codes; EncryptedSharedPreferences |

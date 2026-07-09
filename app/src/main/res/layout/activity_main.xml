@@ -56,9 +56,51 @@
             android:id="@+id/passStatusText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="12dp"
             android:textColor="#81C784"
             android:textSize="14sp" />
+
+        <LinearLayout
+            android:id="@+id/passActionsRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/setExpiryButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/set_expiry"
+                android:textAllCaps="false"
+                android:textColor="#90CAF9"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/exportPassButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/export_pass"
+                android:textAllCaps="false"
+                android:textColor="#90CAF9"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/removePassButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/remove_pass"
+                android:textAllCaps="false"
+                android:textColor="#EF9A9A"
+                android:textSize="13sp" />
+        </LinearLayout>
 
         <View
             android:layout_width="match_parent"
