@@ -84,6 +84,13 @@ This script:
 
 Upload the latest `.aab` from `releases/` to **Play Console → Testing → Internal testing**.
 
+### Release notes (manual)
+
+Release notes live in the repo but are **not** wired into any upload tooling yet — copy them into the Play Console by hand when you upload:
+
+- [`CHANGELOG.md`](CHANGELOG.md) — full developer-facing history (per `versionCode`).
+- [`distribution/whatsnew/whatsnew-en-US`](distribution/whatsnew/whatsnew-en-US) — the current release's Play Store **"What's new"** text (≤ 500 chars). Update this each release, then paste it into the Play Console listing. This is the conventional path Gradle Play Publisher / `fastlane supply` would auto-read if upload automation is added later.
+
 ### Play Console checklist
 
 - Create app with package `dev.bluedog.garagedoor`
@@ -111,7 +118,7 @@ cd "$ANDROID_HOME/extras/google/auto"
 ./desktop-head-unit
 ```
 
-Enable **Start head unit server** in Android Auto developer settings first.
+Enable **Start head unit server** in Android Auto developer settings first. For the full in-car unlock regression procedure (setup, test steps, expected results, troubleshooting), see [`docs/ANDROID_AUTO_DHU_TESTING.md`](docs/ANDROID_AUTO_DHU_TESTING.md).
 
 ## Scripts
 
