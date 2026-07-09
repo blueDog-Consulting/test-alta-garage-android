@@ -72,8 +72,9 @@ This script:
 
 1. Verifies your keystore
 2. **Auto-increments `versionCode`** in `version.properties` (required for each Play upload)
-3. Builds signed release AAB + APK
-4. Archives versioned copies under `releases/`, e.g. `garagedoor-v1.0.0-3-20260701-120000.aab`
+3. **Syncs the `versionName` patch to the `versionCode`** — e.g. versionCode 6 → versionName `1.0.6` (major.minor preserved). For a significant release, pass `--release-version 1.1.0` to pin that name instead
+4. Builds signed release AAB + APK
+5. Archives versioned copies under `releases/`, e.g. `garagedoor-v1.0.6-6-20260709-120000.aab`
 
 Upload the latest `.aab` from `releases/` to **Play Console → Testing → Internal testing**.
 
@@ -142,8 +143,9 @@ scripts/
 
 `version.properties` is the source of truth. `app/build.gradle.kts` reads it at build time.
 
-- Edit `versionName` manually when you want a new user-facing version string
 - `versionCode` is incremented automatically by `build-release-aab.sh` before each release build
+- `versionName`'s patch (`.x`) is set to match the new `versionCode` automatically — so `1.0.6` means versionCode 6. `major.minor` are preserved across builds
+- For a significant release, run `./scripts/build-release-aab.sh --release-version MAJOR.MINOR[.PATCH]` (e.g. `--release-version 1.1.0`) to pin that name; later default builds resume tracking the patch to `versionCode` on top of the new `major.minor`
 - Play Console requires every upload to have a higher `versionCode` than the last
 
 ## Security

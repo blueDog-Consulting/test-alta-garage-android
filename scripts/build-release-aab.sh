@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
+#
+# Usage:
+#   ./scripts/build-release-aab.sh [--prompt] [--release-version MAJOR.MINOR[.PATCH]]
+#
+# Bumps versionCode by 1 and, by default, sets the versionName patch (.x) to match the new
+# versionCode — e.g. versionCode 6 -> versionName 1.0.6 (major.minor are preserved). Pass
+# --release-version to pin a significant release name (e.g. --release-version 1.1.0); that exact
+# name is used for this build, and later default builds resume tracking the patch to versionCode
+# on top of the new major.minor.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -45,12 +54,34 @@ versionName=1.0.0
 EOF
   fi
 
-  local current next version_name
+  local current next
   current="$(read_version_prop versionCode)"
-  version_name="$(read_version_prop versionName)"
   next=$((current + 1))
   write_version_prop versionCode "$next"
-  echo "Bumped versionCode: ${current} -> ${next} (versionName: ${version_name})"
+  echo "Bumped versionCode: ${current} -> ${next}"
+  apply_version_name "$next"
+}
+
+# Sets versionName. Default: patch (.x) tracks the versionCode, preserving major.minor
+# (1.0.0 + versionCode 6 -> 1.0.6). A pinned significant release (--release-version) is used as-is.
+apply_version_name() {
+  local version_code="$1"
+
+  if [[ -n "$RELEASE_VERSION" ]]; then
+    write_version_prop versionName "$RELEASE_VERSION"
+    echo "versionName pinned to significant release: $RELEASE_VERSION"
+    return
+  fi
+
+  local current_name major minor new_name
+  current_name="$(read_version_prop versionName)"
+  major="$(echo "$current_name" | cut -d. -f1)"
+  minor="$(echo "$current_name" | cut -d. -f2)"
+  [[ -z "$major" ]] && major=1
+  [[ -z "$minor" ]] && minor=0
+  new_name="${major}.${minor}.${version_code}"
+  write_version_prop versionName "$new_name"
+  echo "versionName: ${current_name} -> ${new_name} (patch tracks versionCode)"
 }
 
 verify_keystore() {
@@ -153,8 +184,19 @@ STORE_PASSWORD="$(read_prop storePassword)"
 KEY_PASSWORD="$(read_prop keyPassword)"
 
 USE_PROMPT=false
-if [[ "${1:-}" == "--prompt" ]]; then
-  USE_PROMPT=true
+RELEASE_VERSION=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --prompt) USE_PROMPT=true; shift ;;
+    --release-version) RELEASE_VERSION="${2:-}"; shift 2 ;;
+    --release-version=*) RELEASE_VERSION="${1#*=}"; shift ;;
+    *) echo "Unknown option: $1"; exit 1 ;;
+  esac
+done
+
+if [[ -n "$RELEASE_VERSION" && ! "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
+  echo "Invalid --release-version '$RELEASE_VERSION' (expected MAJOR.MINOR or MAJOR.MINOR.PATCH)"
+  exit 1
 fi
 
 if [[ "$USE_PROMPT" == true ]] ||
