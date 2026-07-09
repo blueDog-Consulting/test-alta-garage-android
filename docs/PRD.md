@@ -199,7 +199,7 @@ Success: **HTTP 204 No Content**
 **FR-6: Storage**
 
 - Persist `short_code` in `SharedPreferences` (app-private)
-- Alongside the code, persist expiry lifecycle metadata: `saved_at`, `expires_at` (epoch ms; absent = unknown), `expiry_source` (`parsed` | `manual` | `unknown`), and `last_notified_threshold` (reminder dedup)
+- Alongside the code, persist expiry lifecycle metadata: `saved_at`, `expires_at` (epoch ms; absent = unknown), `expiry_source` (`token` | `parsed` | `manual` | `unknown`), `last_notified_threshold` (reminder dedup), and `doors_json` (cached door list)
 - `allowBackup=false` — do not cloud-backup credentials
 - No hardcoded live short code in source (prototype final state)
 
@@ -207,7 +207,7 @@ Success: **HTTP 204 No Content**
 
 The credential with a real lifetime is the guest pass (valid up to ~6 months, §2.1); the re-resolved JWT is only a short-lived unlock token, so it is *not* a source for the pass's true expiry. Three failure modes must be prevented:
 
-1. **Expiry capture & display** — on save, parse validity dates from the raw Alta share text (ranges take the end date, e.g. "Jul 1 – Dec 30, 2026"); fall back to a manual date picker when none is present. The phone shows a live "Valid until … · N days left" status that turns amber ≤ 7 days and red once expired. A failed date parse never clears a previously known expiry for the same short code.
+1. **Expiry capture & display** — the pass's expiry is read from the resolved token's JWT `exp` claim (the authoritative source, captured during door discovery; `expiry_source = "token"`). Fallbacks when the token can't be resolved: parse validity dates from the raw Alta share text (ranges take the end date, e.g. "Jul 1 – Dec 30, 2026"), then a manual date picker. A user-set manual date is never overwritten by the token; a failed parse never clears a previously known expiry. The phone shows a live "Valid until … · N days left" status that turns amber ≤ 7 days and red once expired.
 2. **Device-migration durability** — because `allowBackup=false`, a reinstall / cleared data / new phone silently loses the pass while it is still valid. Mitigation: a user-controlled **Export / copy pass** action that reconstructs the guest-pass link (`…/cloudKeyUnlock?shortCode=<code>`) for the clipboard or share sheet, so the credential is never trapped solely in app-private storage. *(Rejected alternative: flipping `allowBackup=true` with a scoped backup rule — it would place the plaintext short code in cloud backup, reversing the deliberate no-cloud-credential decision. Revisit only alongside EncryptedSharedPreferences, §10.2.5.)*
 3. **Destructive-action guards** — removing the saved pass requires an explicit confirmation dialog (which points the user at Export first); no unlock/error path ever clears the pass, and saving an already-expired pass warns but still saves rather than silently discarding it.
 
@@ -495,7 +495,7 @@ Parser must extract URL only; optionally parse validity dates for expiry UX.
    - Deferred: a user-chosen "default" door for a true one-tap car button; multi-site grouping
 
 3. **Expiry awareness & credential durability** (see FR-6a)
-   - Capture `expires_at` on save: parse validity from raw share text, manual date-picker fallback
+   - Capture `expires_at` from the token's JWT `exp` (authoritative); parse-from-share-text and a manual date-picker as fallbacks
    - In-app "valid until · N days left" status chip (amber ≤ 7 days, red when expired)
    - WorkManager daily check → notification at 7 days and 2 days before expiry, and once expired (dedup via `last_notified_threshold`); an immediate one-time check also runs on save/expiry change
    - Export / copy pass for device migration; confirmation guard on remove

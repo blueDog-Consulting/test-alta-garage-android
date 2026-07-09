@@ -41,7 +41,7 @@ Guest passes are stored on-device in `SharedPreferences` — not hardcoded for d
 
 When Alta rotates your pass, repeat the steps above. No app rebuild required.
 
-The app extracts the URL from Alta share text, and also reads any validity dates for expiry reminders.
+The app extracts the URL from Alta share text. The pass **expiry is read from the token itself** (the JWT `exp` claim) when the pass is resolved, so "Valid until … · N days left" and the expiry reminders populate automatically — even from a bare link with no visible dates. Share-text dates and a manual date picker remain as offline fallbacks.
 
 **Doors are discovered automatically** — no code changes per door. On save the app resolves the pass and lists every door in its token (`entryData`), sorted with garage/parking doors first. Tap any door to unlock it, on the phone or in the car. See [`Doors.kt`](app/src/main/java/dev/bluedog/garagedoor/Doors.kt).
 

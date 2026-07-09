@@ -18,9 +18,13 @@ expiry work below (v4 was never published to Play).
   even with no stored pass).
 
 ### Added
-- **Door discovery (PRD E1).** `AltaUnlockClient.fetchDoors()` resolves the pass and returns its
+- **Door discovery (PRD E1).** `AltaUnlockClient.fetchPassInfo()` resolves the pass and returns its
   `entryData`; the list is cached in `UnlockConfigStore` (`doors_json`) and re-fetched when a
   different pass is saved. Both the phone and the Android Auto grid list all doors.
+- **Expiry from the token (`exp`).** The same token resolve now reads the JWT `exp` claim — the
+  authoritative pass expiry — and stores it (`expiry_source = "token"`). Share-text date parsing
+  and the manual date picker remain as fallbacks; a user-set manual date is never overwritten.
+  A URL-only pass (no visible dates) now populates "Valid until … · N days left" automatically.
 
 ### Changed
 - Unlock targets a door by its `entryId` (`unlockDoor(shortCode, entryId, label)`) instead of

@@ -75,6 +75,18 @@ class PassExpiryTest {
     }
 
     @Test
+    fun readsExpiryFromJwtExpClaim() {
+        // exp is Unix seconds; result is millis.
+        assertEquals(1795284540L * 1000L, PassExpiry.fromJwtExp("""{"exp":1795284540,"orgId":1}"""))
+    }
+
+    @Test
+    fun jwtExpMissingOrZeroReturnsNull() {
+        assertNull(PassExpiry.fromJwtExp("""{"orgId":1}"""))
+        assertNull(PassExpiry.fromJwtExp("""{"exp":0}"""))
+    }
+
+    @Test
     fun daysRemainingIsPositiveBeforeExpiry() {
         val now = endOfLocalDay(2026, 1, 1)
         val expires = PassExpiry.endOfDay(now) + 45 * PassExpiry.DAY_MS

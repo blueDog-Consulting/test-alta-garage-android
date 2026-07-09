@@ -15,12 +15,21 @@ class AltaUnlockClient {
         val message: String,
     )
 
-    /** Resolves the pass and returns every door it grants (from the token's `entryData`). */
-    fun fetchDoors(shortCode: String): Result<List<Door>> {
+    /** What a resolved pass tells us: the doors it grants and its true expiry (JWT `exp`). */
+    data class PassInfo(
+        val doors: List<Door>,
+        val expiresAt: Long?,
+    )
+
+    /**
+     * Resolves the pass once and reads both the doors it grants (`entryData`) and its expiry
+     * (`exp`) from the same JWT payload.
+     */
+    fun fetchPassInfo(shortCode: String): Result<PassInfo> {
         return try {
             val token = resolveUnlockToken(shortCode)
-            val payload = decodeJwtPayload(token)
-            Result.success(Doors.parseFromPayload(payload.toString()))
+            val payload = decodeJwtPayload(token).toString()
+            Result.success(PassInfo(Doors.parseFromPayload(payload), PassExpiry.fromJwtExp(payload)))
         } catch (e: Exception) {
             Result.failure(e)
         }

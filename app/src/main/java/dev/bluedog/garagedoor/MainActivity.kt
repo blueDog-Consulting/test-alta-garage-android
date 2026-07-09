@@ -195,12 +195,19 @@ class MainActivity : AppCompatActivity() {
         statusView.text = getString(R.string.doors_loading)
 
         executor.execute {
-            val result = unlockClient.fetchDoors(shortCode)
+            val result = unlockClient.fetchPassInfo(shortCode)
             runOnUiThread {
                 result
-                    .onSuccess { doors ->
-                        configStore.saveDoors(doors)
-                        showDoors(doors)
+                    .onSuccess { info ->
+                        configStore.saveDoors(info.doors)
+                        // The JWT's exp is the authoritative expiry; adopt it and refresh the chip.
+                        if (info.expiresAt != null && configStore.setExpiryFromToken(info.expiresAt)) {
+                            renderPassStatus()
+                            ensureNotificationPermission()
+                            PassExpiryWorker.schedule(this)
+                            PassExpiryWorker.runNow(this)
+                        }
+                        showDoors(info.doors)
                     }
                     .onFailure {
                         doorListContainer.removeAllViews()

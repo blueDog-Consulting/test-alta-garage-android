@@ -101,6 +101,21 @@ class UnlockConfigStore(context: Context) {
             .apply()
     }
 
+    /**
+     * Sets the expiry from the token's `exp` claim — the authoritative source. Skips overwriting an
+     * expiry the user set by hand. Returns true if the stored expiry changed.
+     */
+    fun setExpiryFromToken(epochMs: Long): Boolean {
+        if (getExpirySource() == SOURCE_MANUAL) return false
+        if (getExpiresAt() == epochMs && getExpirySource() == SOURCE_TOKEN) return false
+        prefs.edit()
+            .putLong(KEY_EXPIRES_AT, epochMs)
+            .putString(KEY_EXPIRY_SOURCE, SOURCE_TOKEN)
+            .remove(KEY_LAST_NOTIFIED)
+            .apply()
+        return true
+    }
+
     fun clearSavedPass() {
         prefs.edit()
             .remove(KEY_SHORT_CODE)
@@ -131,6 +146,7 @@ class UnlockConfigStore(context: Context) {
         private const val KEY_LAST_NOTIFIED = "last_notified_threshold"
         private const val KEY_DOORS = "doors_json"
 
+        const val SOURCE_TOKEN = "token"
         const val SOURCE_PARSED = "parsed"
         const val SOURCE_MANUAL = "manual"
         const val SOURCE_UNKNOWN = "unknown"

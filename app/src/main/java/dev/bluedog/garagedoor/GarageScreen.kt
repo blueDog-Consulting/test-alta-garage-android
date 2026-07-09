@@ -104,11 +104,14 @@ class GarageScreen(carContext: CarContext) : Screen(carContext) {
         invalidate()
 
         executor.execute {
-            val result = unlockClient.fetchDoors(shortCode)
+            val result = unlockClient.fetchPassInfo(shortCode)
             loadingDoors = false
             result
-                .onSuccess { doors ->
-                    configStore.saveDoors(doors)
+                .onSuccess { info ->
+                    configStore.saveDoors(info.doors)
+                    if (info.expiresAt != null && configStore.setExpiryFromToken(info.expiresAt)) {
+                        PassExpiryWorker.schedule(carContext)
+                    }
                     loadError = false
                 }
                 .onFailure { loadError = true }

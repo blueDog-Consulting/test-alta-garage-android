@@ -6,6 +6,7 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import org.json.JSONObject
 
 /**
  * Parses and reasons about the guest pass's real expiry date.
@@ -45,6 +46,16 @@ object PassExpiry {
         "MMMM d, yyyy",
         "MMMM d yyyy",
     )
+
+    /**
+     * The pass's true expiry, read from the JWT `exp` claim (Unix seconds → millis), or null if the
+     * claim is absent. This is the authoritative source — the token itself carries the credential's
+     * validity window (~months) — preferred over [parseExpiry] of the human-readable share text.
+     */
+    fun fromJwtExp(payloadJson: String): Long? {
+        val expSeconds = JSONObject(payloadJson).optLong("exp", 0L)
+        return if (expSeconds > 0L) expSeconds * 1000L else null
+    }
 
     /**
      * Returns the end-of-day epoch millis of the latest date found in [rawText], or null if no date
