@@ -1,6 +1,6 @@
 # Garage Unlock
 
-Android Auto app with one button to open **Garage North Coiling Door** via an [Avigilon Alta](https://www.avigilon.com/) guest pass — without opening Alta Open on your phone.
+Android Auto app to open **any door your [Avigilon Alta](https://www.avigilon.com/) guest pass grants** — without opening Alta Open on your phone. The app lists every door in the pass; tap one to unlock it.
 
 **PRD:** [PRD.md](docs/PRD.md)
 
@@ -9,8 +9,8 @@ Android Auto app with one button to open **Garage North Coiling Door** via an [A
 ## How it works
 
 1. Resolve the guest pass short code: `GET https://helium.prod.openpath.com/shortUrl/{shortCode}`
-2. Decode the JWT unlock token and find the entry ID for the configured door label
-3. Unlock: `POST https://api.openpath.com/tokens/cloudKeyUnlockTokens/{token}/use` with `{ "entryId": … }`
+2. Decode the JWT and read its `entryData` — the full list of doors the pass grants (cached on save)
+3. Unlock the tapped door by its `entryId`: `POST https://api.openpath.com/tokens/cloudKeyUnlockTokens/{token}/use` with `{ "entryId": … }`
 
 The phone app and Android Auto car UI share the same saved guest pass.
 
@@ -28,7 +28,7 @@ The phone app and Android Auto car UI share the same saved guest pass.
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Open **Garage Unlock** on the phone, paste or share your guest pass link, tap **Save guest pass**, then **Open Garage North Coiling Door** to test.
+Open **Garage Unlock** on the phone, paste or share your guest pass link, tap **Save guest pass**, then tap a door from the **Unlock a door** list to test.
 
 ## Guest pass setup
 
@@ -41,16 +41,9 @@ Guest passes are stored on-device in `SharedPreferences` — not hardcoded for d
 
 When Alta rotates your pass, repeat the steps above. No app rebuild required.
 
-The app extracts only the URL from Alta share text (name, door, validity dates are stripped automatically).
+The app extracts the URL from Alta share text, and also reads any validity dates for expiry reminders.
 
-**Door name** is configured in code for this build:
-
-```kotlin
-// app/src/main/java/dev/bluedog/garagedoor/AltaConfig.kt
-const val DOOR_LABEL = "Garage North Coiling Door"
-```
-
-Change `DOOR_LABEL` if your door label in Alta differs. Fork and adjust for your own door.
+**Doors are discovered automatically** — no code changes per door. On save the app resolves the pass and lists every door in its token (`entryData`), sorted with garage/parking doors first. Tap any door to unlock it, on the phone or in the car. See [`Doors.kt`](app/src/main/java/dev/bluedog/garagedoor/Doors.kt).
 
 ## Release builds (Play Console)
 

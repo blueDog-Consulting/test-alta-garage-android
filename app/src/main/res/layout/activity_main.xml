@@ -103,30 +103,35 @@
         </LinearLayout>
 
         <View
+            android:id="@+id/unlockDivider"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginBottom="24dp"
             android:background="#37474F" />
 
         <TextView
+            android:id="@+id/doorSectionLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="@string/doors_section"
+            android:textColor="#ECEFF1"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
             android:id="@+id/statusText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="12dp"
             android:gravity="center"
-            android:text="@string/ready"
             android:textColor="#B0BEC5"
-            android:textSize="16sp" />
+            android:textSize="15sp" />
 
-        <Button
-            android:id="@+id/unlockButton"
+        <LinearLayout
+            android:id="@+id/doorListContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:backgroundTint="#2E7D32"
-            android:padding="16dp"
-            android:text="@string/unlock_button"
-            android:textAllCaps="false"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp" />
+            android:orientation="vertical" />
     </LinearLayout>
 </ScrollView>

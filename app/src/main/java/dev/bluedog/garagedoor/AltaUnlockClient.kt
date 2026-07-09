@@ -15,11 +15,21 @@ class AltaUnlockClient {
         val message: String,
     )
 
-    fun unlockDoor(shortCode: String, doorLabel: String): UnlockResult {
+    /** Resolves the pass and returns every door it grants (from the token's `entryData`). */
+    fun fetchDoors(shortCode: String): Result<List<Door>> {
         return try {
             val token = resolveUnlockToken(shortCode)
-            val entryId = findEntryId(token, doorLabel)
-                ?: return UnlockResult(false, "Door not found: $doorLabel")
+            val payload = decodeJwtPayload(token)
+            Result.success(Doors.parseFromPayload(payload.toString()))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /** Unlocks a specific door by its entryId; [doorLabel] is used only for the result message. */
+    fun unlockDoor(shortCode: String, entryId: Int, doorLabel: String): UnlockResult {
+        return try {
+            val token = resolveUnlockToken(shortCode)
             val status = postUnlock(token, entryId)
             if (status == HttpURLConnection.HTTP_NO_CONTENT) {
                 UnlockResult(true, "$doorLabel unlocked")
@@ -35,18 +45,6 @@ class AltaUnlockClient {
         val response = getJson(AltaConfig.shortUrl(shortCode))
         val fullUrl = response.getJSONObject("data").getString("fullUrl")
         return fullUrl.substringAfter("token=")
-    }
-
-    private fun findEntryId(token: String, doorLabel: String): Int? {
-        val payload = decodeJwtPayload(token)
-        val entryData = payload.getJSONArray("entryData")
-        for (index in 0 until entryData.length()) {
-            val entry = entryData.getJSONObject(index)
-            if (entry.getString("uiLabel") == doorLabel) {
-                return entry.getInt("entryId")
-            }
-        }
-        return null
     }
 
     private fun decodeJwtPayload(token: String): JSONObject {

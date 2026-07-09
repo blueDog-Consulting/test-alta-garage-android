@@ -10,9 +10,12 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,11 +37,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var passInput: EditText
     private lateinit var passStatusView: TextView
     private lateinit var statusView: TextView
-    private lateinit var unlockButton: Button
     private lateinit var passActionsRow: View
     private lateinit var setExpiryButton: Button
     private lateinit var exportPassButton: Button
     private lateinit var removePassButton: Button
+    private lateinit var unlockDivider: View
+    private lateinit var doorSectionLabel: TextView
+    private lateinit var doorListContainer: LinearLayout
 
     private val requestNotifications =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* best effort */ }
@@ -54,24 +59,25 @@ class MainActivity : AppCompatActivity() {
         passInput = findViewById(R.id.passInput)
         passStatusView = findViewById(R.id.passStatusText)
         statusView = findViewById(R.id.statusText)
-        unlockButton = findViewById(R.id.unlockButton)
         passActionsRow = findViewById(R.id.passActionsRow)
         setExpiryButton = findViewById(R.id.setExpiryButton)
         exportPassButton = findViewById(R.id.exportPassButton)
         removePassButton = findViewById(R.id.removePassButton)
-
-        renderPassStatus()
+        unlockDivider = findViewById(R.id.unlockDivider)
+        doorSectionLabel = findViewById(R.id.doorSectionLabel)
+        doorListContainer = findViewById(R.id.doorListContainer)
 
         findViewById<Button>(R.id.savePassButton).setOnClickListener {
             val text = passInput.text.toString()
             savePass(text, text)
         }
-        unlockButton.setOnClickListener { unlockDoor() }
         setExpiryButton.setOnClickListener { showSetExpiryDialog() }
         exportPassButton.setOnClickListener { exportPass() }
         removePassButton.setOnClickListener { confirmRemovePass() }
 
-        // If a pass with a known expiry is already saved, make sure the reminder check is scheduled.
+        renderPassStatus()
+        renderUnlockSection()
+
         if (configStore.getExpiresAt() != null) {
             PassExpiryWorker.schedule(this)
         }
@@ -103,8 +109,8 @@ class MainActivity : AppCompatActivity() {
 
         when (val result = configStore.savePassInput(normalized, rawText)) {
             is UnlockConfigStore.SaveResult.Saved -> {
-                statusView.text = getString(R.string.ready)
                 renderPassStatus()
+                renderUnlockSection()
                 if (result.expiresAt != null) {
                     ensureNotificationPermission()
                     PassExpiryWorker.schedule(this)
@@ -153,6 +159,120 @@ class MainActivity : AppCompatActivity() {
         passStatusView.text = "$base\n$expiryLine"
     }
 
+    // --- Door list --------------------------------------------------------------------------
+
+    /** Shows the unlock section only when a pass is saved; lists the doors that pass grants. */
+    private fun renderUnlockSection() {
+        if (!configStore.hasSavedPass()) {
+            setUnlockSectionVisible(false)
+            doorListContainer.removeAllViews()
+            statusView.text = ""
+            statusView.setOnClickListener(null)
+            return
+        }
+        setUnlockSectionVisible(true)
+
+        val cached = configStore.getDoors()
+        if (cached.isNotEmpty()) {
+            showDoors(cached)
+        } else {
+            fetchDoors()
+        }
+    }
+
+    private fun setUnlockSectionVisible(visible: Boolean) {
+        val visibility = if (visible) View.VISIBLE else View.GONE
+        unlockDivider.visibility = visibility
+        doorSectionLabel.visibility = visibility
+        statusView.visibility = visibility
+        doorListContainer.visibility = visibility
+    }
+
+    private fun fetchDoors() {
+        val shortCode = configStore.getShortCode() ?: return
+        doorListContainer.removeAllViews()
+        statusView.setOnClickListener(null)
+        statusView.text = getString(R.string.doors_loading)
+
+        executor.execute {
+            val result = unlockClient.fetchDoors(shortCode)
+            runOnUiThread {
+                result
+                    .onSuccess { doors ->
+                        configStore.saveDoors(doors)
+                        showDoors(doors)
+                    }
+                    .onFailure {
+                        doorListContainer.removeAllViews()
+                        statusView.text = getString(R.string.doors_load_failed)
+                        statusView.setOnClickListener { fetchDoors() }
+                    }
+            }
+        }
+    }
+
+    private fun showDoors(doors: List<Door>) {
+        statusView.setOnClickListener(null)
+        doorListContainer.removeAllViews()
+        if (doors.isEmpty()) {
+            statusView.text = getString(R.string.doors_none)
+            return
+        }
+        statusView.text = ""
+        for (door in Doors.sortForDisplay(doors)) {
+            doorListContainer.addView(createDoorButton(door))
+        }
+    }
+
+    private fun createDoorButton(door: Door): Button {
+        return Button(this).apply {
+            text = door.uiLabel
+            isAllCaps = false
+            setTextColor(getColor(android.R.color.white))
+            setBackgroundColor(0xFF2E7D32.toInt())
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
+            val pad = dp(14)
+            setPadding(pad, pad, pad, pad)
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            ).apply { bottomMargin = dp(12) }
+            setOnClickListener { unlock(door) }
+        }
+    }
+
+    private fun unlock(door: Door) {
+        val shortCode = configStore.getShortCode() ?: return
+        setDoorButtonsEnabled(false)
+        statusView.text = getString(R.string.unlocking_door, door.uiLabel)
+
+        executor.execute {
+            val result = unlockClient.unlockDoor(shortCode, door.entryId, door.uiLabel)
+            runOnUiThread {
+                setDoorButtonsEnabled(true)
+                statusView.text = formatUnlockResult(result.message)
+            }
+        }
+    }
+
+    private fun setDoorButtonsEnabled(enabled: Boolean) {
+        for (index in 0 until doorListContainer.childCount) {
+            doorListContainer.getChildAt(index).isEnabled = enabled
+        }
+    }
+
+    private fun formatUnlockResult(message: String): String {
+        if (message.contains("HTTP 4", ignoreCase = true) ||
+            message.contains("failed", ignoreCase = true) &&
+            message.contains("HTTP", ignoreCase = true)
+        ) {
+            return "$message\n${getString(R.string.pass_update_on_phone)}"
+        }
+        return message
+    }
+
+    // --- Pass actions -----------------------------------------------------------------------
+
     private fun showSetExpiryDialog() {
         val calendar = Calendar.getInstance()
         configStore.getExpiresAt()?.let { calendar.timeInMillis = it }
@@ -198,7 +318,7 @@ class MainActivity : AppCompatActivity() {
                 configStore.clearSavedPass()
                 PassExpiryWorker.cancel(this)
                 renderPassStatus()
-                statusView.text = getString(R.string.pass_not_configured)
+                renderUnlockSection()
             }
             .show()
     }
@@ -214,35 +334,5 @@ class MainActivity : AppCompatActivity() {
     private fun formatDate(epochMs: Long): String =
         SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date(epochMs))
 
-    private fun unlockDoor() {
-        val shortCode = configStore.getShortCode()
-        if (shortCode == null) {
-            statusView.text = getString(R.string.pass_not_configured)
-            return
-        }
-
-        unlockButton.isEnabled = false
-        statusView.text = getString(R.string.unlocking)
-
-        executor.execute {
-            val result = unlockClient.unlockDoor(
-                shortCode = shortCode,
-                doorLabel = AltaConfig.DOOR_LABEL,
-            )
-            runOnUiThread {
-                unlockButton.isEnabled = true
-                statusView.text = formatUnlockResult(result.message)
-            }
-        }
-    }
-
-    private fun formatUnlockResult(message: String): String {
-        if (message.contains("HTTP 4", ignoreCase = true) ||
-            message.contains("failed", ignoreCase = true) &&
-            message.contains("HTTP", ignoreCase = true)
-        ) {
-            return "$message\n${getString(R.string.pass_update_on_phone)}"
-        }
-        return message
-    }
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 }

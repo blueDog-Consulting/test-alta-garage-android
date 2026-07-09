@@ -1,16 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Garage Unlock</string>
-    <string name="unlock_button">Open Garage North Coiling Door</string>
-    <string name="unlocking">Unlocking garage door…</string>
-    <string name="ready">Ready to unlock</string>
     <string name="settings_hint">When your Alta guest pass rotates, paste the new link here. Android Auto uses the same saved pass. The pass is stored only on this device — export it to keep a backup.</string>
+
+    <!-- Door list -->
+    <string name="doors_section">Unlock a door</string>
+    <string name="doors_loading">Loading your doors…</string>
+    <string name="doors_load_failed">Couldn\'t load doors. Tap to retry.</string>
+    <string name="doors_none">This pass grants no doors.</string>
+    <string name="unlocking_door">Unlocking %1$s…</string>
     <string name="guest_pass_hint">Guest pass link or short code</string>
     <string name="save_pass">Save guest pass</string>
     <string name="pass_saved">Guest pass saved. Short code: %1$s</string>
     <string name="pass_save_failed">Could not save. Paste the full Alta link or short code.</string>
     <string name="pass_not_configured">No guest pass saved. Paste or share your Alta link above.</string>
     <string name="pass_update_on_phone">Guest pass expired. Open Garage Unlock on your phone to update it.</string>
+
+    <!-- Android Auto -->
+    <string name="car_no_pass">No pass saved. Set it up in Garage Unlock on your phone.</string>
+    <string name="car_loading_doors">Loading doors…</string>
+    <string name="car_unlocking">Unlocking…</string>
+    <string name="car_ready">Tap to unlock</string>
 
     <!-- Expiry status -->
     <string name="pass_valid_until">Valid until %1$s · %2$d days left</string>

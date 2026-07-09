@@ -4,6 +4,30 @@ All notable changes to Garage Unlock are documented here. This project adheres t
 [Keep a Changelog](https://keepachangelog.com/) and uses an incrementing Play `versionCode`
 with `versionName` following semantic-ish versioning.
 
+## [1.0.0] – versionCode 5 – 2026-07-09
+
+Focus: **show the doors the pass actually grants.** Ships together with the versionCode 4
+expiry work below (v4 was never published to Play).
+
+### Fixed
+- The unlock UI no longer shows a hard-coded "Garage North Coiling Door" button. The app now
+  discovers **every** door the guest pass grants (from the token's `entryData`) and lists them
+  all. Doors whose label mentions "garage" or "parking" sort to the top, then the rest — each
+  group alphabetical.
+- Nothing is shown in the unlock area when no pass is saved (previously a door button appeared
+  even with no stored pass).
+
+### Added
+- **Door discovery (PRD E1).** `AltaUnlockClient.fetchDoors()` resolves the pass and returns its
+  `entryData`; the list is cached in `UnlockConfigStore` (`doors_json`) and re-fetched when a
+  different pass is saved. Both the phone and the Android Auto grid list all doors.
+
+### Changed
+- Unlock targets a door by its `entryId` (`unlockDoor(shortCode, entryId, label)`) instead of
+  matching a hard-coded `uiLabel`; the `AltaConfig.DOOR_LABEL` constant is removed.
+- Android Auto shows one grid item per door (per-door loading/result) and a "set it up on your
+  phone" message when no pass is saved.
+
 ## [1.0.0] – versionCode 4 – 2026-07-08
 
 Focus: **don't lose the guest pass before it expires.** The app now tracks the pass's real
@@ -42,14 +66,10 @@ expiry, warns before it lapses, and makes the credential recoverable across devi
 
 ---
 
-### Play Console "What's new" (v4)
+### Play Console "What's new" (next release)
 
-```
-Never get caught by an expired garage pass. Garage Unlock now tracks your Alta guest
-pass expiry, shows how many days are left, and reminds you 7 days and 2 days before it
-lapses — plus once it has expired. You can also export/back up your pass so a new phone
-won't lose it, and removing a pass now asks for confirmation.
-```
+See [`distribution/whatsnew/whatsnew-en-US`](distribution/whatsnew/whatsnew-en-US) for the
+current, ready-to-paste blurb (covers door discovery + expiry, since production is v3).
 
 ## [1.0.0] – versionCode 1–3 – 2026-07-01
 

@@ -36,6 +36,13 @@ class UnlockConfigStore(context: Context) {
         return if (value <= 0L) null else value
     }
 
+    /** The doors this pass grants, discovered from the token and cached at save time. */
+    fun getDoors(): List<Door> = Doors.fromJson(prefs.getString(KEY_DOORS, null))
+
+    fun saveDoors(doors: List<Door>) {
+        prefs.edit().putString(KEY_DOORS, Doors.toJson(doors)).apply()
+    }
+
     fun getExpirySource(): String = prefs.getString(KEY_EXPIRY_SOURCE, SOURCE_UNKNOWN) ?: SOURCE_UNKNOWN
 
     fun getPassStatus(): PassStatus? {
@@ -76,6 +83,9 @@ class UnlockConfigStore(context: Context) {
             }
         }
 
+        // A different pass grants different doors — drop the stale cache so it is re-fetched.
+        if (code != previousCode) editor.remove(KEY_DOORS)
+
         editor.apply()
 
         val alreadyExpired = effectiveExpiry != null && PassExpiry.isExpired(effectiveExpiry, now)
@@ -98,6 +108,7 @@ class UnlockConfigStore(context: Context) {
             .remove(KEY_EXPIRES_AT)
             .remove(KEY_EXPIRY_SOURCE)
             .remove(KEY_LAST_NOTIFIED)
+            .remove(KEY_DOORS)
             .apply()
     }
 
@@ -118,6 +129,7 @@ class UnlockConfigStore(context: Context) {
         private const val KEY_EXPIRES_AT = "expires_at"
         private const val KEY_EXPIRY_SOURCE = "expiry_source"
         private const val KEY_LAST_NOTIFIED = "last_notified_threshold"
+        private const val KEY_DOORS = "doors_json"
 
         const val SOURCE_PARSED = "parsed"
         const val SOURCE_MANUAL = "manual"

@@ -3,8 +3,6 @@
 package dev.bluedog.garagedoor
 
 object AltaConfig {
-    const val DOOR_LABEL = "Garage North Coiling Door"
-
     private const val SHORT_URL_BASE = "https://helium.prod.openpath.com/shortUrl/"
     private const val UNLOCK_URL_BASE = "https://api.openpath.com/tokens/cloudKeyUnlockTokens/"
 

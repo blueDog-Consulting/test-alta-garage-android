@@ -57,7 +57,7 @@ Capture everything learned building the prototype so a **more expansive applicat
 
 | ID | Goal | Rationale |
 |----|------|-----------|
-| E1 | Support multiple doors and multiple sites | Real buildings have many entries per pass |
+| E1 | Support multiple doors and multiple sites | Real buildings have many entries per pass — **door discovery shipped** (FR-2); multi-site TBD |
 | E2 | Resident OAuth/API login (if available) | Eliminate guest pass rotation pain |
 | E3 | Widget, shortcut, and Assistant integrations | Fallback when car app unavailable |
 | E4 | Pass expiry reminders + credential durability | Guest passes expire predictably; don't lose a valid pass before its expiry |
@@ -163,11 +163,12 @@ GET https://helium.prod.openpath.com/shortUrl/{shortCode}
 
 Response: JSON with `data.fullUrl` containing JWT token as query param `token=...`
 
-**FR-2: Parse JWT payload**
+**FR-2: Parse JWT payload → door list** *(implements E1; see `Doors.kt`)*
 
 - Decode JWT segment 2 (base64url)
-- Read `entryData` array
-- Match `uiLabel` to configured door label → `entryId` (e.g. `947325` for Garage North Coiling Door)
+- Read the `entryData` array — **all** entries (`entryId` + `uiLabel`), not a single hard-coded door
+- Cache the list (`UnlockConfigStore.doors_json`) at save time; re-fetch when a different pass is saved
+- Display order: labels containing "garage"/"parking" first, then the rest — each group alphabetical
 
 **FR-3: Execute unlock**
 
@@ -181,9 +182,9 @@ Success: **HTTP 204 No Content**
 
 **FR-4: Door scoping**
 
-- Guest pass may list multiple doors
-- App must unlock **only** the door matching configured label
-- Wrong or missing label → error: "Door not found: {label}"
+- Guest pass may list multiple doors — the app lists them all and unlocks the one the user taps
+- Unlock targets the selected door by its `entryId` (no hard-coded label matching)
+- The unlock UI is hidden entirely when no pass is saved
 
 ### 5.2 Guest pass configuration
 
@@ -488,9 +489,10 @@ Parser must extract URL only; optionally parse validity dates for expiry UX.
    - Explain Play install requirement for Android Auto
    - Guide: share pass from Alta Open → save → test → enable in car
 
-2. **Door discovery**
-   - On save, call shortUrl API and list all `entryData.uiLabel` values
-   - User picks default door; car button uses default
+2. **Door discovery** ✅ *shipped*
+   - On save, resolve the pass and list **all** `entryData` doors (phone + car); tap any to unlock
+   - Ordering: garage/parking labels first, then alphabetical (`Doors.sortForDisplay`)
+   - Deferred: a user-chosen "default" door for a true one-tap car button; multi-site grouping
 
 3. **Expiry awareness & credential durability** (see FR-6a)
    - Capture `expires_at` on save: parse validity from raw share text, manual date-picker fallback
@@ -680,7 +682,7 @@ If resident already uses HA with Alta integration, car access via HA companion A
 | Google tightens sideload | Already blocked | Play-only distribution |
 | Short code in leaked APK | Unauthorized access | No hardcoded codes; EncryptedSharedPreferences |
 | OpenPath rate limits | Unlock fails | Retry with backoff; user messaging |
-| Wrong door label | Silent wrong-door risk | Door picker from JWT; confirm UI on first save |
+| Wrong door label | Silent wrong-door risk | Mitigated: all doors listed from JWT `entryData` and unlocked by `entryId` (no hard-coded label) |
 
 ---
 
