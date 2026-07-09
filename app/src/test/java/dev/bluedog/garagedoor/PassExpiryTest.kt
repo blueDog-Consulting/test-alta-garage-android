@@ -91,21 +91,29 @@ class PassExpiryTest {
     }
 
     @Test
-    fun activeReminderThresholdCrossesSevenThenOne() {
+    fun activeReminderThresholdCrossesSevenThenTwoThenExpired() {
         val expires = endOfLocalDay(2026, 6, 30)
         // 10 days out → no threshold yet.
         assertNull(PassExpiry.activeReminderThreshold(expires, expires - 10 * PassExpiry.DAY_MS))
-        // 6 days out → 7-day threshold.
+        // 5 days out → 7-day threshold.
         assertEquals(
             7,
-            PassExpiry.activeReminderThreshold(expires, expires - 6 * PassExpiry.DAY_MS),
+            PassExpiry.activeReminderThreshold(expires, expires - 5 * PassExpiry.DAY_MS),
         )
-        // Within 1 day → 1-day threshold.
+        // 2 days out → 2-day threshold.
         assertEquals(
-            1,
+            2,
+            PassExpiry.activeReminderThreshold(expires, expires - 2 * PassExpiry.DAY_MS),
+        )
+        // Within a day (not yet expired) → still the 2-day threshold.
+        assertEquals(
+            2,
             PassExpiry.activeReminderThreshold(expires, expires - 12 * 60 * 60 * 1000),
         )
-        // Expired → no reminder.
-        assertNull(PassExpiry.activeReminderThreshold(expires, expires + PassExpiry.DAY_MS))
+        // Expired → the expired sentinel (0), so an expired notification can fire.
+        assertEquals(
+            PassExpiry.EXPIRED_THRESHOLD,
+            PassExpiry.activeReminderThreshold(expires, expires + PassExpiry.DAY_MS),
+        )
     }
 }

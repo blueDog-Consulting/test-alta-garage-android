@@ -495,7 +495,7 @@ Parser must extract URL only; optionally parse validity dates for expiry UX.
 3. **Expiry awareness & credential durability** (see FR-6a)
    - Capture `expires_at` on save: parse validity from raw share text, manual date-picker fallback
    - In-app "valid until · N days left" status chip (amber ≤ 7 days, red when expired)
-   - WorkManager daily check → notification at 7 days and 1 day before expiry (dedup via `last_notified_threshold`)
+   - WorkManager daily check → notification at 7 days and 2 days before expiry, and once expired (dedup via `last_notified_threshold`); an immediate one-time check also runs on save/expiry change
    - Export / copy pass for device migration; confirmation guard on remove
 
 4. **Fallbacks**

@@ -17,7 +17,9 @@ expiry, warns before it lapses, and makes the credential recoverable across devi
 - **Expiry status chip.** The phone shows `Valid until <date> · N days left`, turning amber at
   ≤ 7 days and red once expired.
 - **Expiry reminders.** A daily background check (WorkManager) posts a notification 7 days and
-  1 day before the pass expires, each firing once.
+  2 days before the pass expires, **and once it has expired**, each firing once. Saving or
+  changing a pass also runs an immediate check so a near-expiry or expired pass notifies right
+  away instead of waiting for the next daily run.
 - **Export / copy pass.** Reconstructs your Alta guest-pass link to the clipboard and share
   sheet so the pass can be backed up and restored on a new device (it otherwise lives only on
   this device).
@@ -44,9 +46,9 @@ expiry, warns before it lapses, and makes the credential recoverable across devi
 
 ```
 Never get caught by an expired garage pass. Garage Unlock now tracks your Alta guest
-pass expiry, shows how many days are left, and reminds you 7 days and 1 day before it
-lapses. You can also export/back up your pass so a new phone won't lose it, and removing
-a pass now asks for confirmation.
+pass expiry, shows how many days are left, and reminds you 7 days and 2 days before it
+lapses — plus once it has expired. You can also export/back up your pass so a new phone
+won't lose it, and removing a pass now asks for confirmation.
 ```
 
 ## [1.0.0] – versionCode 1–3 – 2026-07-01

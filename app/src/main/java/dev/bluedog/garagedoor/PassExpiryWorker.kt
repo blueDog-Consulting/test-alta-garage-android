@@ -9,6 +9,8 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.Worker
 import androidx.work.WorkerParameters
@@ -32,21 +34,31 @@ class PassExpiryWorker(
 
         val threshold = PassExpiry.activeReminderThreshold(expiresAt, now) ?: return Result.success()
         if (threshold < store.getLastNotifiedThreshold()) {
-            notifyExpiry(PassExpiry.daysRemaining(expiresAt, now))
+            if (threshold == PassExpiry.EXPIRED_THRESHOLD) {
+                notify(
+                    applicationContext.getString(R.string.pass_expired_notification_title),
+                    applicationContext.getString(R.string.pass_expired_notification),
+                )
+            } else {
+                val days = PassExpiry.daysRemaining(expiresAt, now)
+                notify(
+                    applicationContext.getString(R.string.pass_expiry_notification_title),
+                    applicationContext.getString(R.string.pass_expiry_notification, days),
+                )
+            }
             store.setLastNotifiedThreshold(threshold)
         }
         return Result.success()
     }
 
-    private fun notifyExpiry(daysRemaining: Long) {
+    private fun notify(title: String, text: String) {
         val manager = NotificationManagerCompat.from(applicationContext)
         if (!manager.areNotificationsEnabled()) return
 
         ensureChannel(applicationContext)
-        val text = applicationContext.getString(R.string.pass_expiry_notification, daysRemaining)
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_garage)
-            .setContentTitle(applicationContext.getString(R.string.pass_expiry_notification_title))
+            .setContentTitle(title)
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -58,6 +70,7 @@ class PassExpiryWorker(
     companion object {
         const val CHANNEL_ID = "pass_expiry"
         private const val WORK_NAME = "pass_expiry_check"
+        private const val ONE_TIME_WORK_NAME = "pass_expiry_check_now"
         private const val NOTIFICATION_ID = 1001
 
         /** (Re)schedules the daily check. Safe to call on every save. */
@@ -66,6 +79,20 @@ class PassExpiryWorker(
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 WORK_NAME,
                 ExistingPeriodicWorkPolicy.UPDATE,
+                request,
+            )
+        }
+
+        /**
+         * Evaluates the pass immediately — used right after a save or expiry change so the reminder
+         * (or expired notice) fires without waiting for the next daily run. The periodic check
+         * alone would not re-run within its current period.
+         */
+        fun runNow(context: Context) {
+            val request = OneTimeWorkRequestBuilder<PassExpiryWorker>().build()
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                ONE_TIME_WORK_NAME,
+                ExistingWorkPolicy.REPLACE,
                 request,
             )
         }

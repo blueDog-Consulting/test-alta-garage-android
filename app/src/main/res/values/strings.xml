@@ -33,6 +33,8 @@
     <!-- Expiry reminders -->
     <string name="pass_expiry_notification_title">Garage pass expiring</string>
     <string name="pass_expiry_notification">Your guest pass expires in %1$d days. Share a new Alta link to keep unlocking.</string>
+    <string name="pass_expired_notification_title">Garage pass expired</string>
+    <string name="pass_expired_notification">Your guest pass has expired. Share a new Alta link to keep unlocking.</string>
     <string name="pass_expiry_channel_name">Pass expiry reminders</string>
     <string name="pass_expiry_channel_desc">Warns before your Alta guest pass expires</string>
 </resources>

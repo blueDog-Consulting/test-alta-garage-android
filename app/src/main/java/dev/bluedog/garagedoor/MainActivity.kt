@@ -108,6 +108,7 @@ class MainActivity : AppCompatActivity() {
                 if (result.expiresAt != null) {
                     ensureNotificationPermission()
                     PassExpiryWorker.schedule(this)
+                    PassExpiryWorker.runNow(this)
                 }
                 if (result.alreadyExpired) {
                     Toast.makeText(this, R.string.pass_already_expired_warning, Toast.LENGTH_LONG).show()
@@ -165,6 +166,7 @@ class MainActivity : AppCompatActivity() {
                 configStore.setExpiryManually(picked.timeInMillis)
                 ensureNotificationPermission()
                 PassExpiryWorker.schedule(this)
+                PassExpiryWorker.runNow(this)
                 renderPassStatus()
             },
             calendar.get(Calendar.YEAR),
