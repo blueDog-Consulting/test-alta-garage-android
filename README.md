@@ -88,7 +88,7 @@ git commit -am "Release 1.0.6" && git push
 git tag v1.0.6 && git push origin v1.0.6   # tag must equal versionName
 ```
 
-Add these repository secrets first (Settings → Secrets and variables → Actions): `KEYSTORE_BASE64` (`base64 -w0 garage-upload.jks`), `KEYSTORE_PASSWORD`, `KEY_PASSWORD`, `KEY_ALIAS`. Running the workflow manually (Actions → Release → Run workflow) builds and keeps the files as a run artifact without creating a release.
+Add these repository secrets first (Settings → Secrets and variables → Actions): `KEYSTORE_BASE64` (`base64 -w0 garage-upload.jks`), `KEYSTORE_PASSWORD`, `KEY_PASSWORD`, `KEY_ALIAS`. If you also add `PLAY_SERVICE_ACCOUNT_JSON` (the full JSON key of a Google Cloud service account invited in Play Console → Users and permissions with release access to this app), the same tag push uploads the AAB to **Internal testing**, using `distribution/whatsnew/` for the release notes. The very first upload of an app must still be done by hand in the Play Console. Running the workflow manually (Actions → Release → Run workflow) builds and keeps the files as a run artifact without creating a release.
 
 ### Release notes (manual)
 
