@@ -78,6 +78,18 @@ This script:
 
 Upload the latest `.aab` from `releases/` to **Play Console → Testing → Internal testing**.
 
+### GitHub Release (CI)
+
+`.github/workflows/release.yml` builds a signed AAB + APK and attaches them to a GitHub Release when you push a `v*` tag:
+
+```bash
+./scripts/build-release-aab.sh --prompt   # bumps version.properties (commit it)
+git commit -am "Release 1.0.6" && git push
+git tag v1.0.6 && git push origin v1.0.6   # tag must equal versionName
+```
+
+Add these repository secrets first (Settings → Secrets and variables → Actions): `KEYSTORE_BASE64` (`base64 -w0 garage-upload.jks`), `KEYSTORE_PASSWORD`, `KEY_PASSWORD`, `KEY_ALIAS`. Running the workflow manually (Actions → Release → Run workflow) builds and keeps the files as a run artifact without creating a release.
+
 ### Release notes (manual)
 
 Release notes live in the repo but are **not** wired into any upload tooling yet — copy them into the Play Console by hand when you upload:
